@@ -18,23 +18,49 @@ const createBlog = asyncHandler(async(req, res) => {
     }
     const newBlog = await Blog.create({ title, content, author:req.user._id});
     res.status(201).json(newBlog);
-});
+})
 
 
 const getBlog = asyncHandler(async(req, res) => {
+    const blog = await Blog.findById(req.params.id)
+    if(!blog){
+        res.status(404)
+        throw new Error('Blog not found')
+    }
+    res.status(200).json(blog)
+    
 
-
-});
+})
 
 
 const updateBlog = asyncHandler(async(req, res) => {
-
+    const blog = await Blog.findById(req.params.id)
+    if(!blog){
+        res.status(404)
+        throw new Error('Blog not found')
+    }
+    if(blog.author.toString() !== req.user._id){
+        res.status(403)
+        throw new Error("User don't have the permission to update other user blog post")
+    }
+    const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, req.body, {new: true})
+    res.status(200).json(updatedBlog)
 
 });
 
 
 const deleteBlog = asyncHandler(async(req, res) => {
-
+    const blog = await Blog.findById(req.params.id)
+    if(!blog){
+        res.status(404)
+        throw new Error('Blog not found')
+    }
+    if(blog.author.toString() !== req.user._id){
+        res.status(403)
+        throw new Error("User don't have the permission to delete other user blog post")
+    }
+    await blog.findByIdAndDelete(blog)
+    res.status(200).json({message: 'Blog deleted successfully'})
 
 });
 
