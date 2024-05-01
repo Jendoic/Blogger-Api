@@ -74,7 +74,35 @@ const deleteBlog = asyncHandler(async(req, res) => {
     await Blog.findOneAndDelete(req.params.id)
     res.status(200).json({message: 'Blog deleted successfully'})
 
-});
+})
+
+const likeBlog = asyncHandler(async(req, res) =>{
+    const blog = await Blog.findById(req.params.id)
+    if(!blog){
+        res.status(404)
+        throw new Error('Blog not found')
+    }
+    if(blog.likes.includes(req.user._id)){
+        res.status(400)
+        throw new Error("User already liked this blog")
+    }
+    const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, {$push: {likes: req.user._id}}, {new: true})
+    res.status(200).json(updatedBlog)
+})
+
+const unlikeBlog = asyncHandler(async (req, res) => {
+    const blog = await Blog.findById(req.params.id)
+    if(!blog){
+        res.status(404)
+        throw new Error('Blog not found')
+    }
+    if(!blog.likes.includes(req.user._id)){
+        res.status(400)
+        throw new Error("User has not liked this blog")
+    }
+    const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, {$pull: {likes: req.user._id}}, {new: true})
+    res.status(200).json(updatedBlog)
+})
 
 module.exports = {
     getBlogs,
@@ -83,4 +111,6 @@ module.exports = {
     getBlog,
     updateBlog,
     deleteBlog,
+    likeBlog,
+    unlikeBlog,
 }
